@@ -116,7 +116,99 @@ const cases: CaseStudy[] = [
       'LOAD_ASSET: ENDIRO_BOTANIC',
       'MOBILE_OPTIMIZATION: 16px_HINT',
       'BANDWIDTH_TEST: PASSED',
-      'FIDELITY: 98.4%'
+    ]
+  },
+  {
+    id:      'summit',
+    tag:     'Enterprise · Operations',
+    name:    'Summit',
+    tagline: 'Structural Topology for Impact',
+    problem:
+      'Corporate operations tools required an overarching identity that was fluid enough to express motion but structural enough to convey stability.',
+    solution:
+      'We engineered an interlocking path protocol, visualizing synergy and precision without resorting to basic corporate iconography.',
+    outcome:
+      'A scalable visual system that adapts perfectly across enterprise environments, maintaining integrity from 32px to 20m.',
+    pills:  ['Path Topology', 'Scalable Vector', 'Enterprise UI', 'Global Reach'],
+    asset:  'summit',
+    stats: [
+      { label: 'Weight', value: '2.10kb' },
+      { label: 'Load', value: 'O(1)' },
+      { label: 'Target', value: 'B2B' },
+    ],
+    coordinates: ['0.00°', 'x:45.0', 'y:90.0', 'z:1.0'],
+    specs: [
+      { label: 'Core Geometry', value: 'Linear' },
+      { label: 'Structure', value: 'Interlocked' },
+      { label: 'Alignment', value: 'Center' }
+    ],
+    log: [
+      'LOAD_ASSET: SUMMIT_SYS',
+      'VALIDATING_TOPOLOGY: OK',
+      'MOTION_CALC: OPTIMAL',
+      'STATUS: DEPLOYED'
+    ]
+  },
+  {
+    id:      'empire',
+    tag:     'Hospitality · Nightlife',
+    name:    'Empire Club',
+    tagline: 'Luxury Illuminated in Darkness',
+    problem:
+      'Premium nightlife environments need branding that anchors pure light inside low-visibility, high-energy physical spaces.',
+    solution:
+      'Modeled an emission-friendly typographic aesthetic that thrives natively as glowing signage and premium digital passes.',
+    outcome:
+      'A robust neon-ready visual language holding its distinct structural weight in complete physical and digital darkness.',
+    pills:  ['Emission Core', 'Dark-Mode UI', 'Neon Protocol', 'Luxury Spec'],
+    asset:  'empire',
+    stats: [
+      { label: 'Lighting', value: 'Emission' },
+      { label: 'Env', value: 'Zero-Lux' },
+      { label: 'Contrast', value: 'Max' },
+    ],
+    coordinates: ['180.00°', 'x:120.0', 'y:75.2', 'z:2.0'],
+    specs: [
+      { label: 'Alpha Layer', value: 'Active' },
+      { label: 'Glow Radius', value: '40px' },
+      { label: 'Contrast', value: '100%' }
+    ],
+    log: [
+      'LOAD_ASSET: EMPIRE_NEON',
+      'CALIBRATING_EMISSION',
+      'NIGHT_MODE: ACTIVE',
+      'STATUS: OPTIMAL'
+    ]
+  },
+  {
+    id:      'fashion',
+    tag:     'Apparel · Editorial',
+    name:    'Fashion Brand',
+    tagline: 'Typographic Restraint for Aesthetics',
+    problem:
+      'High-end apparel lines require an invisible structural identity that allows seasonal photography to command the foreground.',
+    solution:
+      'Authored a minimalist, hairline-weight mark operating strictly on foundational grids, eliminating unnecessary visual noise.',
+    outcome:
+      'An elegant signature system that seamlessly frames global collections instead of competing visually with the textiles.',
+    pills:  ['Hairline Weight', 'Variable Font', 'Grid Anchor', 'Editorial'],
+    asset:  'fashion',
+    stats: [
+      { label: 'Weight', value: '700ir' },
+      { label: 'Kerning', value: '-2%' },
+      { label: 'Baseline', value: 'Snap' },
+    ],
+    coordinates: ['90.00°', 'x:72.5', 'y:12.4', 'z:0.0'],
+    specs: [
+      { label: 'Font Weight', value: '300' },
+      { label: 'Tracking', value: 'Tight' },
+      { label: 'Scale', value: 'Fluid' }
+    ],
+    log: [
+      'LOAD_ASSET: FASHION_HAIRLINE',
+      'ALIGN_BASELINE: 100%',
+      'NOISE_REDUCTION: MAX',
+      'STATUS: DEPLOYED'
     ]
   },
 ]

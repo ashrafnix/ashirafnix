@@ -26,7 +26,7 @@ This document specifies the requirements for redesigning the main hero section o
 1. THE Hero_Component SHALL display the Cinematic_Image as the primary visual element in the Hero_Section
 2. THE Image_Loader SHALL optimize the Cinematic_Image for web delivery with Next.js Image component
 3. THE Hero_Component SHALL set the Cinematic_Image with priority loading to ensure immediate visibility
-4. THE Hero_Component SHALL display the Cinematic_Image at full available width of its assigned layout region on all Responsive_Breakpoints
+4. THE Hero_Component SHALL display the Cinematic_Image at full available width of its assigned hero content area on all Responsive_Breakpoints
 5. WHEN the page loads, THE Cinematic_Image SHALL be visible within the first contentful paint
 6. THE Hero_Component SHALL maintain the Cinematic_Image aspect ratio across all Responsive_Breakpoints
 7. THE Image_Loader SHALL serve appropriately sized images for each Responsive_Breakpoint (mobile: 768w, tablet: 1024w, desktop: 1920w)
@@ -84,8 +84,8 @@ This document specifies the requirements for redesigning the main hero section o
 
 1. WHEN viewport width is less than 768px, THE Hero_Component SHALL display content in a single-column layout
 2. WHEN viewport width is 768px or greater, THE Hero_Component SHALL display content in a two-column layout with image and text side-by-side
-3. WHEN viewport width is less than 768px, THE Hero_Component SHALL display the Cinematic_Image at 100% viewport width
-4. WHEN viewport width is 768px or greater, THE Hero_Component SHALL allocate the Cinematic_Image to 45-55% of the hero content width
+3. WHEN viewport width is less than 768px, THE Hero_Component SHALL display the Cinematic_Image at 100% of the hero content area width (inside the horizontal padding)
+4. WHEN viewport width is 768px or greater, THE Hero_Component SHALL allocate the Cinematic_Image to 45-55% of the hero content area width
 5. THE Hero_Component SHALL maintain minimum 1.5rem horizontal padding on mobile devices
 6. THE Hero_Component SHALL maintain minimum 3rem horizontal padding on desktop devices
 7. THE Hero_Component SHALL ensure minimum height of 100vh on all Responsive_Breakpoints
@@ -100,7 +100,7 @@ This document specifies the requirements for redesigning the main hero section o
 
 1. THE Hero_Component SHALL display gradient orbs or light effects behind the Cinematic_Image
 2. THE Hero_Component SHALL apply blur effects to background orbs between 80px and 150px
-3. WHEN a user scrolls, THE Hero_Component SHALL apply parallax effect to background elements (excluding the Cinematic_Image) at 0.3-0.7 speed multiplier
+3. WHEN a user scrolls, THE Hero_Component SHALL apply parallax effect to background elements at 0.3-0.7 speed multiplier and to the Cinematic_Image at 0.5 speed multiplier
 4. THE Hero_Component SHALL layer background effects with z-index values ensuring proper stacking order
 5. THE Hero_Component SHALL use opacity values between 0.05 and 0.2 for background orbs to maintain subtlety
 6. THE Hero_Component SHALL animate background orbs with pulse or float effects over 6-12 second duration

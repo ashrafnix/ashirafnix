@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import ashrafnixHero from '@/assets/ashrafnix hero.png'
 import Footer from '@/components/Footer'
 import ExploreNext from '@/components/ExploreNext'
 import PortfolioLogo from '@/components/PortfolioLogo'
@@ -34,87 +35,87 @@ export default function Home() {
       </div>
 
       {/* ─────────── HERO ─────────── */}
-      <section className="relative min-h-screen flex items-center pt-24 md:pt-32 pb-16 md:pb-20 overflow-hidden">
-        {/* Animated background orbs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-amber-500/5 blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-indigo-500/5 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
-        </div>
-        
-        <div className="max-w-site mx-auto px-6 w-full relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 lg:gap-24 items-center">
+      <section className="relative isolate min-h-screen overflow-hidden pt-24 pb-14 md:pt-32 md:pb-20">
+        <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_15%,rgba(99,102,241,0.2),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(234,179,8,0.16),transparent_38%),linear-gradient(180deg,#020617_0%,#020617_45%,#01030a_100%)]" />
+        <div className="absolute inset-0 -z-10 grid-bg opacity-20" />
+        <div className="pointer-events-none absolute -left-28 top-16 h-72 w-72 rounded-full bg-indigo-500/30 blur-[110px]" />
+        <div className="pointer-events-none absolute -right-24 bottom-20 h-72 w-72 rounded-full bg-amber-500/25 blur-[120px]" />
 
-            {/* Hero image — mobile: top, centered; lg: right column */}
-            <div className="flex items-center justify-center lg:order-last">
-              <div className="relative group w-full max-w-[340px] sm:max-w-[420px] md:max-w-[480px] lg:max-w-full">
-                {/* Outer glow ring */}
-                <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-500/20 via-indigo-500/5 to-amber-500/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                {/* Border gradient */}
-                <div className="absolute -inset-px rounded-[2rem] bg-gradient-to-br from-indigo-500/30 via-indigo-500/10 to-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                {/* Main frame */}
-                <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl group-hover:border-indigo-500/40 transition-all duration-700 group-hover:shadow-indigo-500/20">
-                  {/* Top accent line */}
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent" />
-                  <Image
-                    src="/assets/hero.png"
-                    alt="Ashraf Nix Kakooza — Full-stack developer and brand designer"
-                    width={520}
-                    height={620}
-                    priority
-                    className="object-cover w-full h-auto transform group-hover:scale-[1.02] transition-transform duration-1000"
-                  />
-                  {/* Bottom gradient overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#020617]/90 via-[#020617]/50 to-transparent" />
-                  {/* Status badges */}
-                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 border border-white/10 backdrop-blur-md shadow-lg">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-emerald-500/50 shadow-lg" />
-                      <span className="text-[0.55rem] font-mono text-slate-300 uppercase tracking-widest">Kampala, UG</span>
-                    </div>
-                    <div className="px-3 py-1.5 rounded-full bg-black/70 border border-indigo-500/30 backdrop-blur-md shadow-lg">
-                      <span className="text-[0.55rem] font-mono text-indigo-400 uppercase tracking-widest font-bold">Available</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Text content */}
-            <div className="space-y-8 lg:space-y-10">
-              {/* Status badge */}
-              <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 hover:border-indigo-500/30 transition-all duration-500 group/badge">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        <div className="max-w-site mx-auto w-full px-6">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 xl:gap-24">
+            <div className="space-y-8 md:space-y-10">
+              <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-4 py-2.5 backdrop-blur-md">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/70" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-400" />
                 </span>
-                <span className="text-[0.6rem] font-mono text-slate-400 uppercase tracking-widest font-bold group-hover/badge:text-slate-300 transition-colors">Node_Status: Active</span>
+                <span className="text-[0.62rem] font-mono uppercase tracking-[0.22em] text-slate-300">
+                  Main_App: Cinematic Mode
+                </span>
               </div>
 
-              {/* Main heading */}
-              <h1 className="text-[clamp(3rem,8vw,10rem)] font-display font-bold text-white tracking-tighter leading-[0.85]">
-                Engineering <br />
-                <span className="text-indigo-500 italic inline-block hover:text-indigo-400 transition-colors">Global</span> <br />
-                Standards.
+              <h1 className="max-w-4xl text-[clamp(2.6rem,8vw,8.2rem)] font-display font-bold leading-[0.84] tracking-[-0.04em] text-white">
+                Build products with
+                <span className="block bg-gradient-to-r from-amber-200 via-amber-400 to-indigo-300 bg-clip-text text-transparent">
+                  presence and power.
+                </span>
               </h1>
 
-              {/* Description */}
-              <p className="text-slate-400 text-lg md:text-xl lg:text-2xl font-sans leading-relaxed max-w-2xl">
-                Architecting the digital foundation for Africa&apos;s technical frontier through engineering-led design systems.
+              <p className="max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg md:text-xl">
+                A high-impact digital flagship engineered for speed, taste, and conversion. Every fold is designed to feel premium before a single word is read.
               </p>
 
-              {/* CTA buttons */}
-              <div className="flex flex-wrap gap-4 lg:gap-6">
-                <Link href="/contact" className="btn-primary px-8 lg:px-12 py-4 lg:py-6 text-base lg:text-xl rounded-2xl group/cta shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30">
-                  Start Project 
-                  <span className="transform group-hover/cta:translate-x-2 transition-transform inline-block ml-2">→</span>
+              <div className="flex flex-wrap items-center gap-4 md:gap-5">
+                <Link
+                  href="/contact"
+                  className="group inline-flex items-center gap-2 rounded-2xl border border-indigo-300/30 bg-gradient-to-r from-indigo-500 to-indigo-600 px-8 py-4 text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-[0_10px_35px_rgba(79,70,229,0.45)] transition-all duration-500 hover:-translate-y-0.5 hover:from-indigo-400 hover:to-indigo-500 hover:shadow-[0_14px_42px_rgba(99,102,241,0.55)] md:px-10 md:py-5"
+                >
+                  Start Project
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                 </Link>
-                <Link href="/brands" className="px-8 lg:px-12 py-4 lg:py-6 text-base lg:text-xl border border-white/10 text-white rounded-2xl hover:bg-white/10 hover:border-indigo-500/30 transition-all duration-500 font-medium backdrop-blur-sm">
+                <Link
+                  href="/brands"
+                  className="inline-flex items-center rounded-2xl border border-white/20 bg-white/[0.03] px-8 py-4 text-sm font-semibold uppercase tracking-[0.08em] text-slate-100 backdrop-blur-md transition-all duration-500 hover:border-amber-300/45 hover:bg-white/[0.07] hover:text-white md:px-10 md:py-5"
+                >
                   View Systems
                 </Link>
               </div>
+
+              <div className="grid max-w-xl grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-2 backdrop-blur-md">
+                {[
+                  ['24ms', 'Latency'],
+                  ['8+', 'Brand Systems'],
+                  ['98%', 'Optimization'],
+                ].map(([value, label]) => (
+                  <div key={label} className="rounded-xl border border-white/5 bg-black/20 px-3 py-3 text-center">
+                    <p className="text-lg font-bold tracking-tight text-amber-300">{value}</p>
+                    <p className="text-[0.62rem] font-mono uppercase tracking-[0.18em] text-slate-400">{label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
+            <div className="relative mx-auto w-full max-w-[420px] sm:max-w-[500px] lg:max-w-none">
+              <div className="pointer-events-none absolute -inset-8 -z-10 rounded-[2.5rem] bg-gradient-to-br from-amber-400/20 via-indigo-500/15 to-transparent blur-3xl" />
+              <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-black/30 shadow-[0_25px_80px_rgba(0,0,0,0.65)]">
+                <div className="absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(2,6,23,0)_50%,rgba(2,6,23,0.7)_100%)]" />
+                <div className="absolute left-1/2 top-0 z-20 h-48 w-px -translate-x-1/2 bg-gradient-to-b from-amber-300 via-amber-200/40 to-transparent" />
+                <Image
+                  src={ashrafnixHero}
+                  alt="AshrafNix cinematic hero artwork"
+                  priority
+                  className="h-auto w-full object-cover transition-transform duration-1000 hover:scale-[1.015]"
+                />
+                <div className="absolute inset-x-4 bottom-4 z-20 flex items-center justify-between gap-3 sm:inset-x-5 sm:bottom-5">
+                  <span className="rounded-full border border-white/20 bg-black/55 px-3 py-1.5 text-[0.55rem] font-mono uppercase tracking-[0.18em] text-slate-200 backdrop-blur-md sm:text-[0.6rem]">
+                    Kampala, UG
+                  </span>
+                  <span className="rounded-full border border-amber-300/40 bg-black/55 px-3 py-1.5 text-[0.55rem] font-mono uppercase tracking-[0.2em] text-amber-300 backdrop-blur-md sm:text-[0.6rem]">
+                    Premium Build
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

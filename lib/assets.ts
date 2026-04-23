@@ -15,13 +15,13 @@ export interface AssetMetadata {
 export const ASSETS: Record<string, AssetMetadata> = {
   hero: {
     id: 'hero',
-    filename: '/assets/hero.png',
-    displayName: 'Ashraf Nix Kakooza',
-    altText: 'Ashraf Nix Kakooza — Full-stack developer and brand designer based in Kampala',
+    filename: '/assets/ashrafnix hero.png',
+    displayName: 'AshrafNix Hero Artwork',
+    altText: 'AshrafNix cinematic hero artwork with AN monogram',
     category: 'brand',
-    dimensions: { width: 520, height: 620 },
-    aspectRatio: 520 / 620,
-    defaultSize: 520,
+    dimensions: { width: 832, height: 1216 },
+    aspectRatio: 832 / 1216,
+    defaultSize: 832,
   },
   ashrafnix: {
     id: 'ashrafnix',

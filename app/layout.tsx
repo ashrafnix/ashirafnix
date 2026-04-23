@@ -4,6 +4,7 @@ import './globals.css'
 import Nav from '@/components/Nav'
 import DeferredScrollReveal from '@/components/DeferredScrollReveal'
 import ScrollProgress from '@/components/ScrollProgress'
+import appLogo from '@/assets/logo.png'
 
 const syne = Syne({
   subsets: ['latin'],
@@ -45,6 +46,13 @@ export const metadata: Metadata = {
     'fintech Africa',
   ],
   authors: [{ name: 'Ashraf Nix Kakooza' }],
+  icons: {
+    icon: [
+      { url: appLogo.src, type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [{ url: appLogo.src }],
+  },
   openGraph: {
     type: 'website',
     locale: 'en_UG',
@@ -52,9 +60,14 @@ export const metadata: Metadata = {
     title: 'AshirafNix — Technical Brands for a Connected Uganda',
     description:
       'Full-stack developer and brand designer. Kampala, Uganda.',
-  },
-  icons: {
-    icon: '/favicon.svg',
+    images: [
+      {
+        url: appLogo.src,
+        width: 1024,
+        height: 700,
+        alt: 'AshrafNix logo',
+      },
+    ],
   },
 }
 

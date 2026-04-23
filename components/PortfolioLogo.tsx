@@ -22,6 +22,10 @@ export default function PortfolioLogo({
 }: PortfolioLogoProps) {
   const assetData = ASSETS[asset]
   const [hasError, setHasError] = useState(false)
+  const targetWidth = size || assetData?.defaultSize || 140
+  const targetHeight = assetData
+    ? Math.max(1, Math.round(targetWidth / assetData.aspectRatio))
+    : targetWidth
 
   if (!assetData) {
     if (process.env.NODE_ENV === 'development') {
@@ -40,10 +44,11 @@ export default function PortfolioLogo({
     <Image
       src={assetData.filename}
       alt={alt || assetData.altText}
-      width={size || assetData.defaultSize}
-      height={size || assetData.defaultSize}
+      width={targetWidth}
+      height={targetHeight}
       priority={priority}
       className={className}
+      style={{ height: 'auto' }}
       onError={() => setHasError(true)}
     />
   )

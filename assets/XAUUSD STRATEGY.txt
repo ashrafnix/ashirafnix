@@ -1,0 +1,467 @@
+//@version=5
+strategy("Aggressive Exness Small-Account Breakout Rebuild",
+     overlay=true,
+     initial_capital=10,
+     pyramiding=0,
+     default_qty_type=strategy.fixed,
+     default_qty_value=1,
+     commission_type=strategy.commission.percent,
+     commission_value=0,
+     slippage=0,
+     margin_long=0.1,
+     margin_short=0.1,
+     process_orders_on_close=true,
+     calc_on_order_fills=false,
+     max_labels_count=500,
+     max_lines_count=500)
+
+// This strategy is intentionally broker-aware for a tiny account. It sizes in
+// Exness-style lots, then sends TradingView quantity as underlying units/contracts.
+
+// ---------- Inputs
+group_mode = "Mode"
+account_mode = input.string("Visual Review", "account_mode", options=["Visual Review", "Real Broker Gate"], group=group_mode)
+setup_strictness = input.string("Learning Loose", "setup_strictness", options=["Learning Loose", "Balanced", "Strict"], group=group_mode)
+entry_style = input.string("Breakout Close", "entry_style", options=["Breakout Close", "Breakout + Retest"], group=group_mode)
+
+group_broker = "Symbol / Broker Gate"
+symbol_mode = input.string("Auto", "symbol_mode", options=["Auto", "EURUSD", "GBPUSD", "XAUUSD"], group=group_broker)
+account_balance_usd = input.float(10.0, "account_balance_usd", minval=1.0, step=1.0, group=group_broker)
+compound_using_strategy_equity = input.bool(true, "compound_using_strategy_equity", group=group_broker)
+risk_pct = input.float(8.0, "risk_pct", minval=0.1, maxval=100.0, step=0.1, group=group_broker)
+min_lot = input.float(0.01, "min_lot", minval=0.001, step=0.001, group=group_broker)
+lot_step = input.float(0.01, "lot_step", minval=0.001, step=0.001, group=group_broker)
+max_margin_usage_pct = input.float(50.0, "max_margin_usage_pct", minval=1.0, maxval=100.0, step=1.0, group=group_broker)
+account_leverage = input.float(1000.0, "account_leverage", minval=1.0, step=100.0, group=group_broker)
+manual_contract_override = input.float(0.0, "manual_contract_override", minval=0.0, step=1.0, group=group_broker)
+
+group_cost = "Costs"
+spread_points = input.float(20.0, "spread_points", minval=0.0, step=1.0, group=group_cost)
+slippage_points = input.float(5.0, "slippage_points", minval=0.0, step=1.0, group=group_cost)
+
+group_session = "Sessions"
+session_mode = input.string("Both", "session_mode", options=["London", "NewYork", "Both"], group=group_session)
+london_session_cutoff = input.session("0700-1100", "London session_cutoff UTC", group=group_session)
+newyork_session_cutoff = input.session("1300-1700", "NewYork session_cutoff UTC", group=group_session)
+opening_range_candles = input.int(3, "opening_range_candles", minval=1, maxval=12, group=group_session)
+
+group_filters = "Breakout / Retest Filters"
+breakout_buffer_mult = input.float(0.15, "breakout_buffer_mult", minval=0.0, step=0.01, group=group_filters)
+atr_floor = input.float(0.0, "atr_floor points (0 = symbol preset)", minval=0.0, step=1.0, group=group_filters)
+atr_expansion_mult = input.float(1.00, "atr_expansion_mult", minval=0.1, step=0.05, group=group_filters)
+min_breakout_body_ratio = input.float(0.55, "min_breakout_body_ratio", minval=0.10, maxval=1.00, step=0.05, group=group_filters)
+retest_bars = input.int(8, "retest_bars", minval=1, maxval=50, group=group_filters)
+retest_tolerance_mult = input.float(0.25, "retest_tolerance_mult", minval=0.0, step=0.05, group=group_filters)
+stop_padding_atr = input.float(0.25, "stop_padding_atr", minval=0.0, step=0.05, group=group_filters)
+use_volume_filter = input.bool(false, "use_volume_filter", group=group_filters)
+
+group_exits = "Exits"
+tp1_r = input.float(1.0, "TP1 R", minval=0.1, step=0.1, group=group_exits)
+tp2_r = input.float(2.5, "TP2 R", minval=0.2, step=0.1, group=group_exits)
+tp1_qty_percent = input.float(30.0, "TP1 qty percent", minval=1.0, maxval=99.0, step=1.0, group=group_exits)
+show_labels = input.bool(true, "show_trade_labels", group=group_exits)
+
+group_review = "Historical Chart Review"
+show_review_plans = input.bool(true, "show historical entry/SL/TP plans", group=group_review)
+show_review_skips = input.bool(true, "show broker-blocked setups", group=group_review)
+show_review_exits = input.bool(true, "show historical exit labels", group=group_review)
+show_session_notes = input.bool(true, "show no-trade session notes", group=group_review)
+show_outside_session_moves = input.bool(true, "show outside-session ignored moves", group=group_review)
+review_projection_bars = input.int(18, "plan line length in bars", minval=3, maxval=100, group=group_review)
+max_review_items = input.int(80, "max historical labels to keep", minval=10, maxval=200, group=group_review)
+outside_review_bars = input.int(24, "outside-session review bars", minval=1, maxval=200, group=group_review)
+
+// ---------- Safety lock
+is_five_minute_chart = timeframe.isminutes and timeframe.multiplier == 5
+if barstate.isfirst and not is_five_minute_chart
+    runtime.error("This strategy is locked to the 5m chart. Switch TradingView to 5 minutes before testing or trading.")
+
+// ---------- Helpers
+f_floor_to_step(value, step) =>
+    step > 0.0 ? math.floor((value + 0.000000001) / step) * step : value
+
+f_contract_default(symbol) =>
+    symbol == "XAUUSD" ? 100.0 : 100000.0
+
+f_atr_floor_default_points(symbol) =>
+    symbol == "XAUUSD" ? 150.0 : 30.0
+
+f_trade_size(balance, risk_percent, entry_price, stop_price, contract_size, minimum_lot, step_lot, max_margin_percent, leverage) =>
+    risk_price = math.abs(entry_price - stop_price)
+    risk_budget = balance * risk_percent * 0.01
+    risk_per_lot = risk_price * contract_size
+    raw_lots = risk_per_lot > 0.0 ? risk_budget / risk_per_lot : 0.0
+    rounded_lots = f_floor_to_step(raw_lots, step_lot)
+    min_lot_risk = minimum_lot * risk_per_lot
+    margin_usd = leverage > 0.0 ? entry_price * contract_size * rounded_lots / leverage : na
+    max_margin_usd = balance * max_margin_percent * 0.01
+    feasible = balance > 0.0 and risk_budget > 0.0 and risk_per_lot > 0.0 and rounded_lots >= minimum_lot and min_lot_risk <= risk_budget and not na(margin_usd) and margin_usd <= max_margin_usd
+    qty_units = rounded_lots * contract_size
+    [feasible, rounded_lots, qty_units, risk_budget, risk_per_lot, min_lot_risk, margin_usd, max_margin_usd]
+
+f_skip_reason(balance, risk_budget, risk_per_lot, min_lot_risk, rounded_lots, minimum_lot, margin_usd, max_margin_usd) =>
+    balance <= 0.0 ? "balance <= 0" :
+     risk_budget <= 0.0 ? "risk budget <= 0" :
+     risk_per_lot <= 0.0 ? "invalid stop distance" :
+     min_lot_risk > risk_budget ? "0.01 lot risk exceeds risk cap" :
+     rounded_lots < minimum_lot ? "rounded size below min_lot" :
+     na(margin_usd) ? "invalid margin estimate" :
+     margin_usd > max_margin_usd ? "margin usage exceeds cap" :
+     "blocked by broker gate"
+
+f_price(value) =>
+    str.tostring(value, format.mintick)
+
+f_num(value) =>
+    str.tostring(value, "#.####")
+
+f_usd(value) =>
+    str.tostring(value, "#.##")
+
+var line[] review_lines = array.new_line()
+var label[] review_labels = array.new_label()
+
+f_keep_review_line(line_id) =>
+    array.push(review_lines, line_id)
+    if array.size(review_lines) > max_review_items * 4
+        old_line = array.shift(review_lines)
+        line.delete(old_line)
+
+f_keep_review_label(label_id) =>
+    array.push(review_labels, label_id)
+    if array.size(review_labels) > max_review_items
+        old_label = array.shift(review_labels)
+        label.delete(old_label)
+
+f_review_line(price, line_color, line_style, line_width) =>
+    new_line = line.new(bar_index, price, bar_index + review_projection_bars, price,
+         xloc=xloc.bar_index, extend=extend.none, color=line_color, style=line_style, width=line_width)
+    f_keep_review_line(new_line)
+
+f_review_label(x, y, label_text, label_style, label_color, txt_color) =>
+    new_label = label.new(x, y, label_text,
+         xloc=xloc.bar_index, style=label_style, color=label_color, textcolor=txt_color, size=size.small)
+    f_keep_review_label(new_label)
+
+f_draw_plan(is_long, entry_price, stop_price, tp1_price, tp2_price, lots, is_blocked, reason) =>
+    plan_color = is_blocked ? color.orange : is_long ? color.green : color.red
+    plan_style = is_blocked ? line.style_dashed : line.style_solid
+    if show_review_plans
+        f_review_line(entry_price, color.new(plan_color, 0), plan_style, 2)
+        f_review_line(stop_price, color.new(color.red, is_blocked ? 35 : 0), plan_style, 1)
+        f_review_line(tp1_price, color.new(color.yellow, is_blocked ? 35 : 0), line.style_dashed, 1)
+        f_review_line(tp2_price, color.new(color.lime, is_blocked ? 35 : 0), line.style_dashed, 1)
+    if show_labels or show_review_plans
+        side = is_long ? "LONG" : "SHORT"
+        title = is_blocked ? "BLOCKED " + side : side
+        details = title + "\nlot " + f_num(lots) + "\nE " + f_price(entry_price) + "\nSL " + f_price(stop_price) + "\nTP1 " + f_price(tp1_price) + "\nTP2 " + f_price(tp2_price)
+        full_text = is_blocked ? details + "\n" + reason : details
+        label_style = is_long ? label.style_label_up : label.style_label_down
+        label_y = is_long ? low : high
+        text_color = is_blocked ? color.black : color.white
+        f_review_label(bar_index, label_y, full_text, label_style, color.new(plan_color, 0), text_color)
+
+// ---------- Symbol presets and costs
+ticker_upper = str.upper(syminfo.ticker)
+auto_symbol = str.contains(ticker_upper, "XAU") ? "XAUUSD" : str.contains(ticker_upper, "GBP") ? "GBPUSD" : "EURUSD"
+active_symbol = symbol_mode == "Auto" ? auto_symbol : symbol_mode
+contract_default = f_contract_default(active_symbol)
+contract_size = manual_contract_override > 0.0 ? manual_contract_override : contract_default
+
+point_value = syminfo.mintick
+spread_price = spread_points * point_value
+slippage_price = slippage_points * point_value
+trade_cost_price = spread_price * 0.5 + slippage_price
+
+balance_for_sizing = compound_using_strategy_equity ? math.max(strategy.equity, 0.0) : account_balance_usd
+
+// ---------- Sessions and opening range
+use_london = session_mode == "London" or session_mode == "Both"
+use_newyork = session_mode == "NewYork" or session_mode == "Both"
+in_london_raw = not na(time(timeframe.period, london_session_cutoff, "UTC"))
+in_newyork_raw = not na(time(timeframe.period, newyork_session_cutoff, "UTC"))
+in_london = use_london and in_london_raw
+in_newyork = use_newyork and in_newyork_raw
+in_window = in_london or in_newyork
+active_session_name = in_london ? "London" : in_newyork ? "NewYork" : "None"
+new_window = in_window and not nz(in_window[1], false)
+session_ended = not in_window and nz(in_window[1], false)
+
+var float orb_high = na
+var float orb_low = na
+var int session_bars = 0
+var int trades_this_session = 0
+var bool skip_notified_session = false
+var bool long_breakout_seen = false
+var bool short_breakout_seen = false
+var int long_breakout_bar = na
+var int short_breakout_bar = na
+var int long_armed_this_session = 0
+var int short_armed_this_session = 0
+var int broker_blocks_this_session = 0
+var int last_session_end_bar = na
+
+if new_window
+    orb_high := high
+    orb_low := low
+    session_bars := 1
+    trades_this_session := 0
+    skip_notified_session := false
+    long_breakout_seen := false
+    short_breakout_seen := false
+    long_breakout_bar := na
+    short_breakout_bar := na
+    long_armed_this_session := 0
+    short_armed_this_session := 0
+    broker_blocks_this_session := 0
+else if in_window
+    session_bars += 1
+    if session_bars <= opening_range_candles
+        orb_high := math.max(orb_high, high)
+        orb_low := math.min(orb_low, low)
+else
+    session_bars := 0
+
+range_ready = in_window and session_bars > opening_range_candles and not na(orb_high) and not na(orb_low)
+
+// ---------- Indicators
+ema_fast = ta.ema(close, 9)
+ema_mid = ta.ema(close, 21)
+ema_slow = ta.ema(close, 50)
+rsi = ta.rsi(close, 14)
+[di_plus, di_minus, adx] = ta.dmi(14, 14)
+atr = ta.atr(14)
+atr_sma = ta.sma(atr, 50)
+volume_sma = ta.sma(volume, 20)
+
+[h1_close, h1_ema20, h1_ema50, h1_ema200, h1_rsi] = request.security(syminfo.tickerid, "60", [close, ta.ema(close, 20), ta.ema(close, 50), ta.ema(close, 200), ta.rsi(close, 14)], barmerge.gaps_off, barmerge.lookahead_off)
+
+atr_floor_points = atr_floor > 0.0 ? atr_floor : f_atr_floor_default_points(active_symbol)
+atr_floor_price = atr_floor_points * point_value
+atr_floor_ok = atr >= atr_floor_price
+atr_expansion_ok = na(atr_sma) ? true : atr >= atr_sma * atr_expansion_mult
+
+volume_available = not na(volume) and volume > 0.0 and not na(volume_sma) and volume_sma > 0.0
+volume_ok = not use_volume_filter or not volume_available or volume > volume_sma
+
+body_size = math.abs(close - open)
+bar_size = high - low
+body_ratio = bar_size > 0.0 ? body_size / bar_size : 0.0
+body_ok = body_ratio >= min_breakout_body_ratio
+
+h1_bias_long = h1_close > h1_ema50 and h1_ema20 > h1_ema50 and h1_ema50 > h1_ema200 and h1_rsi > 50
+h1_bias_short = h1_close < h1_ema50 and h1_ema20 < h1_ema50 and h1_ema50 < h1_ema200 and h1_rsi < 50
+
+momentum_long = ema_fast > ema_mid and ema_mid > ema_slow and close > ema_fast and rsi > 52 and adx > 18 and di_plus > di_minus
+momentum_short = ema_fast < ema_mid and ema_mid < ema_slow and close < ema_fast and rsi < 48 and adx > 18 and di_minus > di_plus
+
+quality_long_strict = h1_bias_long and momentum_long and atr_floor_ok and atr_expansion_ok and volume_ok
+quality_short_strict = h1_bias_short and momentum_short and atr_floor_ok and atr_expansion_ok and volume_ok
+quality_long_balanced = h1_bias_long and close > ema_mid and ema_fast > ema_mid and rsi > 50 and atr_floor_ok and volume_ok
+quality_short_balanced = h1_bias_short and close < ema_mid and ema_fast < ema_mid and rsi < 50 and atr_floor_ok and volume_ok
+quality_long_learning = close > ema_mid and ema_fast > ema_mid and rsi > 48 and atr_floor_ok and volume_ok
+quality_short_learning = close < ema_mid and ema_fast < ema_mid and rsi < 52 and atr_floor_ok and volume_ok
+quality_long = setup_strictness == "Strict" ? quality_long_strict : setup_strictness == "Balanced" ? quality_long_balanced : quality_long_learning
+quality_short = setup_strictness == "Strict" ? quality_short_strict : setup_strictness == "Balanced" ? quality_short_balanced : quality_short_learning
+
+breakout_buffer = math.max(atr * breakout_buffer_mult, spread_price + slippage_price)
+retest_tolerance = math.max(atr * retest_tolerance_mult, trade_cost_price)
+can_seek_trade = range_ready and trades_this_session < 1 and strategy.position_size == 0
+
+if long_breakout_seen and not na(long_breakout_bar) and bar_index - long_breakout_bar > retest_bars
+    long_breakout_seen := false
+    long_breakout_bar := na
+
+if short_breakout_seen and not na(short_breakout_bar) and bar_index - short_breakout_bar > retest_bars
+    short_breakout_seen := false
+    short_breakout_bar := na
+
+long_breakout_event = can_seek_trade and not long_breakout_seen and quality_long and close > orb_high + breakout_buffer and close > open and body_ok
+short_breakout_event = can_seek_trade and not short_breakout_seen and quality_short and close < orb_low - breakout_buffer and close < open and body_ok
+
+if long_breakout_event
+    long_breakout_seen := true
+    long_breakout_bar := bar_index
+    long_armed_this_session += 1
+    short_breakout_seen := false
+    short_breakout_bar := na
+
+if short_breakout_event
+    short_breakout_seen := true
+    short_breakout_bar := bar_index
+    short_armed_this_session += 1
+    long_breakout_seen := false
+    long_breakout_bar := na
+
+long_retest_touch = long_breakout_seen and low <= orb_high + retest_tolerance and low >= orb_high - atr * 0.75
+short_retest_touch = short_breakout_seen and high >= orb_low - retest_tolerance and high <= orb_low + atr * 0.75
+
+long_retest_setup = can_seek_trade and long_breakout_seen and not na(long_breakout_bar) and bar_index > long_breakout_bar and bar_index - long_breakout_bar <= retest_bars and long_retest_touch and close > orb_high + trade_cost_price and close > open and quality_long
+short_retest_setup = can_seek_trade and short_breakout_seen and not na(short_breakout_bar) and bar_index > short_breakout_bar and bar_index - short_breakout_bar <= retest_bars and short_retest_touch and close < orb_low - trade_cost_price and close < open and quality_short
+use_retest_entry = entry_style == "Breakout + Retest"
+long_technical_setup = use_retest_entry ? long_retest_setup : long_breakout_event
+short_technical_setup = use_retest_entry ? short_retest_setup : short_breakout_event
+
+// ---------- Planned entries, stops, and broker feasibility
+long_planned_entry = close + trade_cost_price
+long_initial_stop = math.min(low, orb_high) - atr * stop_padding_atr
+long_risk = long_planned_entry - long_initial_stop
+long_tp1 = long_planned_entry + long_risk * tp1_r
+long_tp2 = long_planned_entry + long_risk * tp2_r
+
+short_planned_entry = close - trade_cost_price
+short_initial_stop = math.max(high, orb_low) + atr * stop_padding_atr
+short_risk = short_initial_stop - short_planned_entry
+short_tp1 = short_planned_entry - short_risk * tp1_r
+short_tp2 = short_planned_entry - short_risk * tp2_r
+
+[long_feasible, long_lots, long_qty_units, long_risk_budget, long_risk_per_lot, long_min_lot_risk, long_margin_usd, long_max_margin_usd] = f_trade_size(balance_for_sizing, risk_pct, long_planned_entry, long_initial_stop, contract_size, min_lot, lot_step, max_margin_usage_pct, account_leverage)
+[short_feasible, short_lots, short_qty_units, short_risk_budget, short_risk_per_lot, short_min_lot_risk, short_margin_usd, short_max_margin_usd] = f_trade_size(balance_for_sizing, risk_pct, short_planned_entry, short_initial_stop, contract_size, min_lot, lot_step, max_margin_usage_pct, account_leverage)
+
+visual_review_mode = account_mode == "Visual Review"
+long_ready = long_technical_setup and (long_feasible or visual_review_mode)
+short_ready = short_technical_setup and (short_feasible or visual_review_mode)
+long_skipped = long_technical_setup and not long_feasible
+short_skipped = short_technical_setup and not short_feasible
+broker_skip = (long_skipped or short_skipped) and not skip_notified_session
+
+long_skip_reason = f_skip_reason(balance_for_sizing, long_risk_budget, long_risk_per_lot, long_min_lot_risk, long_lots, min_lot, long_margin_usd, long_max_margin_usd)
+short_skip_reason = f_skip_reason(balance_for_sizing, short_risk_budget, short_risk_per_lot, short_min_lot_risk, short_lots, min_lot, short_margin_usd, short_max_margin_usd)
+
+// ---------- Trade lifecycle
+var float active_entry = na
+var float active_stop = na
+var float active_tp1 = na
+var float active_tp2 = na
+var float active_cost = na
+var float active_lots = na
+var bool active_tp1_confirmed = false
+var int last_reviewed_closed_trade_count = 0
+
+if long_ready
+    long_order_lots = long_feasible ? long_lots : min_lot
+    long_order_qty_units = long_feasible ? long_qty_units : min_lot * contract_size
+    long_alert_title = long_feasible ? "Long ready" : "Visual-only long | broker would block"
+    long_plan_reason = long_feasible ? "" : long_skip_reason
+    active_entry := long_planned_entry
+    active_stop := long_initial_stop
+    active_tp1 := long_tp1
+    active_tp2 := long_tp2
+    active_cost := trade_cost_price
+    active_lots := long_order_lots
+    active_tp1_confirmed := false
+    trades_this_session += 1
+    long_breakout_seen := false
+    strategy.entry("LONG", strategy.long, qty=long_order_qty_units, comment=long_feasible ? "LONG" : "VISUAL LONG",
+         alert_message=long_alert_title + " | " + active_symbol + " | session=" + active_session_name + " | lots=" + f_num(long_order_lots) + " | entry=" + f_price(long_planned_entry) + " | SL=" + f_price(long_initial_stop) + " | TP1=" + f_price(long_tp1) + " | TP2=" + f_price(long_tp2))
+    alert(long_alert_title + " | " + active_symbol + " | session=" + active_session_name + " | lots=" + f_num(long_order_lots) + " | entry=" + f_price(long_planned_entry) + " | SL=" + f_price(long_initial_stop) + " | TP1=" + f_price(long_tp1) + " | TP2=" + f_price(long_tp2), alert.freq_once_per_bar_close)
+    f_draw_plan(true, long_planned_entry, long_initial_stop, long_tp1, long_tp2, long_order_lots, not long_feasible, long_plan_reason)
+
+if short_ready
+    short_order_lots = short_feasible ? short_lots : min_lot
+    short_order_qty_units = short_feasible ? short_qty_units : min_lot * contract_size
+    short_alert_title = short_feasible ? "Short ready" : "Visual-only short | broker would block"
+    short_plan_reason = short_feasible ? "" : short_skip_reason
+    active_entry := short_planned_entry
+    active_stop := short_initial_stop
+    active_tp1 := short_tp1
+    active_tp2 := short_tp2
+    active_cost := trade_cost_price
+    active_lots := short_order_lots
+    active_tp1_confirmed := false
+    trades_this_session += 1
+    short_breakout_seen := false
+    strategy.entry("SHORT", strategy.short, qty=short_order_qty_units, comment=short_feasible ? "SHORT" : "VISUAL SHORT",
+         alert_message=short_alert_title + " | " + active_symbol + " | session=" + active_session_name + " | lots=" + f_num(short_order_lots) + " | entry=" + f_price(short_planned_entry) + " | SL=" + f_price(short_initial_stop) + " | TP1=" + f_price(short_tp1) + " | TP2=" + f_price(short_tp2))
+    alert(short_alert_title + " | " + active_symbol + " | session=" + active_session_name + " | lots=" + f_num(short_order_lots) + " | entry=" + f_price(short_planned_entry) + " | SL=" + f_price(short_initial_stop) + " | TP1=" + f_price(short_tp1) + " | TP2=" + f_price(short_tp2), alert.freq_once_per_bar_close)
+    f_draw_plan(false, short_planned_entry, short_initial_stop, short_tp1, short_tp2, short_order_lots, not short_feasible, short_plan_reason)
+
+if broker_skip
+    skip_notified_session := true
+    broker_blocks_this_session += 1
+    skip_text = long_skipped ? long_skip_reason : short_skip_reason
+    skip_side = long_skipped ? "LONG" : "SHORT"
+    skip_lots = long_skipped ? long_lots : short_lots
+    skip_margin = long_skipped ? long_margin_usd : short_margin_usd
+    skip_min_risk = long_skipped ? long_min_lot_risk : short_min_lot_risk
+    if not visual_review_mode
+        alert("Trade skipped by broker filter | " + skip_side + " | " + active_symbol + " | reason=" + skip_text + " | rounded_lots=" + f_num(skip_lots) + " | min_lot_risk=$" + f_usd(skip_min_risk) + " | margin=$" + f_usd(skip_margin), alert.freq_once_per_bar_close)
+    if show_review_skips and not visual_review_mode
+        skip_entry = long_skipped ? long_planned_entry : short_planned_entry
+        skip_stop = long_skipped ? long_initial_stop : short_initial_stop
+        skip_tp1 = long_skipped ? long_tp1 : short_tp1
+        skip_tp2 = long_skipped ? long_tp2 : short_tp2
+        f_draw_plan(long_skipped, skip_entry, skip_stop, skip_tp1, skip_tp2, skip_lots, true, skip_text)
+
+if strategy.position_size > 0 and not na(active_tp1)
+    if not active_tp1_confirmed and close >= active_tp1
+        active_tp1_confirmed := true
+    live_long_stop = active_tp1_confirmed ? active_entry + active_cost : active_stop
+    strategy.exit("LONG TP1", from_entry="LONG", qty_percent=tp1_qty_percent, limit=active_tp1, stop=active_stop)
+    strategy.exit("LONG TP2", from_entry="LONG", qty_percent=100.0 - tp1_qty_percent, limit=active_tp2, stop=live_long_stop)
+
+if strategy.position_size < 0 and not na(active_tp1)
+    if not active_tp1_confirmed and close <= active_tp1
+        active_tp1_confirmed := true
+    live_short_stop = active_tp1_confirmed ? active_entry - active_cost : active_stop
+    strategy.exit("SHORT TP1", from_entry="SHORT", qty_percent=tp1_qty_percent, limit=active_tp1, stop=active_stop)
+    strategy.exit("SHORT TP2", from_entry="SHORT", qty_percent=100.0 - tp1_qty_percent, limit=active_tp2, stop=live_short_stop)
+
+if session_ended and strategy.position_size != 0
+    strategy.close_all(comment="Session cutoff", alert_message="Session cutoff close | " + active_symbol)
+
+if session_ended
+    last_session_end_bar := bar_index
+    if show_session_notes
+        note_color = trades_this_session > 0 ? color.new(color.blue, 15) : broker_blocks_this_session > 0 ? color.new(color.orange, 0) : color.new(color.gray, 20)
+        note_text = trades_this_session > 0 ? "SESSION END\ntrades: " + str.tostring(trades_this_session) :
+             broker_blocks_this_session > 0 ? "SESSION END\nsetups blocked: " + str.tostring(broker_blocks_this_session) :
+             long_armed_this_session + short_armed_this_session > 0 ? "SESSION END\nno retest entry\narmed L/S: " + str.tostring(long_armed_this_session) + "/" + str.tostring(short_armed_this_session) :
+             "SESSION END\nno valid setup"
+        f_review_label(bar_index, close, note_text, label.style_label_left, note_color, color.white)
+
+outside_review_active = show_outside_session_moves and not in_window and not na(last_session_end_bar) and bar_index - last_session_end_bar <= outside_review_bars
+outside_long_cross = not na(orb_high) and ta.crossover(close, orb_high)
+outside_short_cross = not na(orb_low) and ta.crossunder(close, orb_low)
+outside_long_ignored = outside_review_active and outside_long_cross
+outside_short_ignored = outside_review_active and outside_short_cross
+if outside_long_ignored
+    f_review_label(bar_index, high, "IGNORED\noutside session\nabove ORB high", label.style_label_down, color.new(color.gray, 0), color.white)
+if outside_short_ignored
+    f_review_label(bar_index, low, "IGNORED\noutside session\nbelow ORB low", label.style_label_up, color.new(color.gray, 0), color.white)
+
+closed_trade_count = strategy.closedtrades
+if closed_trade_count > last_reviewed_closed_trade_count
+    if show_review_exits
+        closed_trade_id = closed_trade_count - 1
+        closed_exit_bar = strategy.closedtrades.exit_bar_index(closed_trade_id)
+        closed_exit_price = strategy.closedtrades.exit_price(closed_trade_id)
+        closed_profit = strategy.closedtrades.profit(closed_trade_id)
+        closed_color = closed_profit >= 0.0 ? color.new(color.green, 0) : color.new(color.red, 0)
+        closed_text = closed_profit >= 0.0 ? "EXIT\n+$" + f_usd(closed_profit) : "EXIT\n$" + f_usd(closed_profit)
+        f_review_label(closed_exit_bar, closed_exit_price, closed_text, label.style_label_left, closed_color, color.white)
+    last_reviewed_closed_trade_count := closed_trade_count
+
+if strategy.position_size == 0 and nz(strategy.position_size[1], 0.0) != 0.0
+    active_entry := na
+    active_stop := na
+    active_tp1 := na
+    active_tp2 := na
+    active_cost := na
+    active_lots := na
+    active_tp1_confirmed := false
+
+// ---------- Visuals
+plot(in_window ? orb_high : na, "ORB High", color=color.new(color.green, 0), linewidth=2, style=plot.style_linebr)
+plot(in_window ? orb_low : na, "ORB Low", color=color.new(color.red, 0), linewidth=2, style=plot.style_linebr)
+plot(ema_fast, "EMA 9", color=color.aqua)
+plot(ema_mid, "EMA 21", color=color.orange)
+plot(ema_slow, "EMA 50", color=color.gray)
+
+plotshape(long_breakout_event, title="Long breakout armed", location=location.belowbar, color=color.new(color.green, 35), style=shape.circle, size=size.tiny, text="BO")
+plotshape(short_breakout_event, title="Short breakout armed", location=location.abovebar, color=color.new(color.red, 35), style=shape.circle, size=size.tiny, text="BO")
+plotshape(long_ready, title="Long ready", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small, text="L")
+plotshape(short_ready, title="Short ready", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small, text="S")
+plotshape(broker_skip, title="Broker skip", location=location.top, color=color.orange, style=shape.xcross, size=size.tiny, text="SKIP")
+
+bgcolor(in_window ? color.new(color.blue, 92) : na, title="Selected session")

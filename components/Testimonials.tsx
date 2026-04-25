@@ -54,7 +54,7 @@ export default function Testimonials() {
           {testimonials.map((testimonial, idx) => (
             <div
               key={testimonial.id}
-              className="glass-premium rounded-2xl md:rounded-3xl p-8 md:p-10 border-white/5 hover:border-indigo-500/30 transition-all duration-700 group"
+              className="glass-premium rounded-2xl md:rounded-3xl p-8 md:p-10 border border-border-subtle hover:border-accent-indigo/30 transition-all duration-700 group"
             >
               {/* Rating stars */}
               <div className="flex gap-1 mb-6">

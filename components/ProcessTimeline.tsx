@@ -45,7 +45,7 @@ const processSteps = [
 
 export default function ProcessTimeline() {
   return (
-    <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-[#020617] reveal">
+    <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-bg reveal">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16 md:mb-24 lg:mb-32">
           <span className="s-label justify-center">Methodology</span>
@@ -71,7 +71,7 @@ export default function ProcessTimeline() {
               >
                 {/* Content */}
                 <div className={`flex-1 ${idx % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                  <div className="glass-premium rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-10 border-white/5 hover:border-indigo-500/30 transition-all duration-700 group">
+                  <div className="glass-premium rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-10 border border-border-subtle hover:border-accent-indigo/30 transition-all duration-700 group">
                     <div className="flex items-start gap-4 mb-4">
                       <span className="text-4xl">{step.icon}</span>
                       <div className="flex-1">
@@ -105,7 +105,7 @@ export default function ProcessTimeline() {
                 </div>
 
                 {/* Timeline dot */}
-                <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-indigo-500 border-4 border-[#020617] z-10" />
+                <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-accent-indigo border-4 border-bg z-10" />
               </div>
             ))}
           </div>

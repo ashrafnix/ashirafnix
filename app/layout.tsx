@@ -4,6 +4,7 @@ import './globals.css'
 import Nav from '@/components/Nav'
 import DeferredScrollReveal from '@/components/DeferredScrollReveal'
 import ScrollProgress from '@/components/ScrollProgress'
+import MobileTabBar from '@/components/MobileTabBar'
 import appLogo from '@/assets/logo.png'
 
 const syne = Syne({
@@ -86,8 +87,8 @@ export default function RootLayout({
         <div className="fixed inset-0 pointer-events-none z-0 opacity-50" />
         <ScrollProgress />
         <Nav />
-        <main className="relative z-10">{children}</main>
-        
+        <main className="relative z-10 pb-20 md:pb-0">{children}</main>
+        <MobileTabBar />
         <DeferredScrollReveal />
       </body>
     </html>

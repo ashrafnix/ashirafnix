@@ -32,9 +32,9 @@ export default function Newsletter() {
   }
 
   return (
-    <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-[#020617] reveal">
+    <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-bg reveal">
       <div className="max-w-4xl mx-auto px-6">
-        <div className="glass-premium rounded-3xl md:rounded-[4rem] border-white/5 p-8 md:p-12 lg:p-16 relative overflow-hidden">
+        <div className="glass-premium rounded-3xl md:rounded-[4rem] border border-border-subtle p-8 md:p-12 lg:p-16 relative overflow-hidden">
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 opacity-50" />
           

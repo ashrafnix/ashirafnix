@@ -4,77 +4,76 @@ import { useEffect, useState } from 'react'
 
 export default function ScrollProgress() {
   const [progress, setProgress] = useState(0)
+  const [visible, setVisible]   = useState(false)
 
   useEffect(() => {
-    const updateProgress = () => {
+    const update = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrolled = window.scrollY
-      const progress = (scrolled / scrollHeight) * 100
-      setProgress(progress)
+      if (scrollHeight <= 0) return
+      const p = (window.scrollY / scrollHeight) * 100
+      setProgress(p)
+      setVisible(window.scrollY > 400)
     }
 
-    window.addEventListener('scroll', updateProgress, { passive: true })
-    updateProgress()
-
-    return () => window.removeEventListener('scroll', updateProgress)
+    window.addEventListener('scroll', update, { passive: true })
+    update()
+    return () => window.removeEventListener('scroll', update)
   }, [])
 
   return (
     <>
       {/* Top progress bar */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-white/5 z-[100]">
+      <div className="fixed top-0 left-0 right-0 h-[2px] bg-transparent z-[100] pointer-events-none">
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-150 ease-out"
-          style={{ width: `${progress}%` }}
+          className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
+          style={{ width: `${progress}%`, transition: 'width 0.1s linear' }}
         />
       </div>
 
-      {/* Circular progress indicator */}
-      <div className="fixed bottom-8 right-8 z-50 hidden lg:block">
-        <div className="relative w-14 h-14 group cursor-pointer">
-          {/* Background circle */}
-          <svg className="w-full h-full transform -rotate-90">
+      {/* Floating scroll-to-top (desktop only) */}
+      <div
+        className={`
+          fixed bottom-8 right-6 z-50 hidden lg:flex flex-col items-center gap-2
+          transition-all duration-500
+          ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}
+        `}
+      >
+        {/* Circular progress */}
+        <div className="relative w-12 h-12 group">
+          <svg className="w-full h-full -rotate-90" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2.5"/>
             <circle
-              cx="28"
-              cy="28"
-              r="24"
-              stroke="currentColor"
-              strokeWidth="3"
+              cx="24" cy="24" r="20"
               fill="none"
-              className="text-white/10"
-            />
-            <circle
-              cx="28"
-              cy="28"
-              r="24"
-              stroke="currentColor"
-              strokeWidth="3"
-              fill="none"
-              strokeDasharray={`${2 * Math.PI * 24}`}
-              strokeDashoffset={`${2 * Math.PI * 24 * (1 - progress / 100)}`}
-              className="text-indigo-500 transition-all duration-150 ease-out"
+              stroke="url(#prog)"
+              strokeWidth="2.5"
               strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 20}`}
+              strokeDashoffset={`${2 * Math.PI * 20 * (1 - progress / 100)}`}
+              style={{ transition: 'stroke-dashoffset 0.1s linear' }}
             />
+            <defs>
+              <linearGradient id="prog" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#6366f1"/>
+                <stop offset="100%" stopColor="#a78bfa"/>
+              </linearGradient>
+            </defs>
           </svg>
 
-          {/* Percentage text */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs font-mono font-bold text-white group-hover:text-indigo-400 transition-colors">
-              {Math.round(progress)}%
-            </span>
-          </div>
-
-          {/* Scroll to top button */}
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="absolute inset-0 rounded-full bg-white/5 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center rounded-full bg-[#0f172a]/80 backdrop-blur-md border border-white/10 text-slate-400 hover:text-white hover:border-indigo-500/40 transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]"
             aria-label="Scroll to top"
           >
-            <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 19V5M5 12l7-7 7 7"/>
             </svg>
           </button>
         </div>
+
+        <span className="text-[0.5rem] font-mono text-slate-600 uppercase tracking-widest">
+          {Math.round(progress)}%
+        </span>
       </div>
     </>
   )

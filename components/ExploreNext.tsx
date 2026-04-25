@@ -39,7 +39,7 @@ export default function ExploreNext({
             <p className="text-slate-500 text-lg md:text-xl font-sans leading-relaxed">{subtitle}</p>
           )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10 rounded-[2rem] overflow-hidden border border-white/10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10 rounded-[2rem] overflow-hidden border border-border-strong">
           {items.map((item) => {
             const inner = (
               <>
@@ -58,7 +58,7 @@ export default function ExploreNext({
               </>
             )
             return (
-              <div key={item.href + item.label} className="bg-[#020617] p-10 md:p-12 group min-h-[200px]">
+              <div key={item.href + item.label} className="bg-bg p-10 md:p-12 group min-h-[200px]">
                 {item.external ? (
                   <a
                     href={item.href}

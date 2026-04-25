@@ -4,7 +4,7 @@ import BrandLogo from './BrandLogo'
 
 export default function Footer() {
   return (
-    <footer className="py-20 border-t border-white/5 bg-[#020617] relative overflow-hidden">
+    <footer className="py-20 border-t border-border-subtle bg-bg relative overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-5 pointer-events-none" />
       <div className="max-w-site mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-20 items-start">
@@ -103,7 +103,7 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="mt-32 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between gap-8 mb-12">
+        <div className="mt-32 pt-8 border-t border-border-subtle flex flex-col md:flex-row justify-between gap-8 mb-12">
           <p className="text-[0.6rem] font-mono text-slate-700 uppercase tracking-widest">
             © 2026 AshirafNix Practice · All Rights Reserved
           </p>
@@ -114,7 +114,7 @@ export default function Footer() {
         </div>
 
         {/* ── SYSTEM LOG TICKER ── */}
-        <div className="border-t border-white/5 pt-6 overflow-hidden relative">
+        <div className="border-t border-border-subtle pt-6 overflow-hidden relative">
            <div className="flex gap-20 whitespace-nowrap animate-ticker">
               {[
                 'INIT_CORE_SYSTEMS: SUCCESS',

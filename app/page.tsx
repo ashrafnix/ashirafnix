@@ -13,6 +13,24 @@ import FAQ from '@/components/FAQ'
 import Awards from '@/components/Awards'
 import Newsletter from '@/components/Newsletter'
 
+/* ─── Static Tailwind class maps — required for production purge-safety.
+   NEVER use template literals like `from-${brand.color}-500` — Tailwind's
+   purger does not evaluate JavaScript at build time. ─── */
+const BRAND_HOVER: Record<string, string> = {
+  amber:  'group-hover:from-amber-500/10',
+  indigo: 'group-hover:from-indigo-500/10',
+  emerald:'group-hover:from-emerald-500/10',
+  blue:   'group-hover:from-blue-500/10',
+  purple: 'group-hover:from-purple-500/10',
+  pink:   'group-hover:from-pink-500/10',
+}
+
+const STAT_HOVER: Record<string, string> = {
+  indigo:  'group-hover:from-indigo-500/5',
+  amber:   'group-hover:from-amber-500/5',
+  emerald: 'group-hover:from-emerald-500/5',
+}
+
 const stats = [
   { num: '8+',   label: 'Brand Systems', icon: '✦', detail: 'Built for enterprise scale', color: 'indigo' },
   { num: '24ms', label: 'Avg Latency',   icon: '⚡', detail: 'Edge-optimized delivery', color: 'amber' },
@@ -35,7 +53,7 @@ export default function Home() {
       </div>
 
       {/* ─────────── HERO ─────────── */}
-      <section className="relative isolate min-h-screen overflow-hidden pt-24 pb-14 md:pt-32 md:pb-20">
+      <section className="relative isolate min-h-screen overflow-hidden pt-24 pb-14 md:pt-32 md:pb-20 bg-bg">
         <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_15%,rgba(99,102,241,0.2),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(234,179,8,0.16),transparent_38%),linear-gradient(180deg,#020617_0%,#020617_45%,#01030a_100%)]" />
         <div className="absolute inset-0 -z-10 grid-bg opacity-20" />
         <div className="pointer-events-none absolute -left-28 top-16 h-72 w-72 rounded-full bg-indigo-500/30 blur-[110px]" />
@@ -81,12 +99,12 @@ export default function Home() {
                 </Link>
               </div>
 
-              <div className="grid max-w-xl grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-2 backdrop-blur-md">
-                {[
+              <div className="grid max-w-xl grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 backdrop-blur-md">
+                {([
                   ['24ms', 'Latency'],
                   ['8+', 'Brand Systems'],
                   ['98%', 'Optimization'],
-                ].map(([value, label]) => (
+                ] as [string, string][]).map(([value, label]) => (
                   <div key={label} className="rounded-xl border border-white/5 bg-black/20 px-3 py-3 text-center">
                     <p className="text-lg font-bold tracking-tight text-amber-300">{value}</p>
                     <p className="text-[0.62rem] font-mono uppercase tracking-[0.18em] text-slate-400">{label}</p>
@@ -121,7 +139,7 @@ export default function Home() {
       </section>
 
       {/* ─────────── IDENTITY SHOWCASE ─────────── */}
-      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-white/[0.02] reveal">
+      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-surface/[0.04] reveal">
         <div className="max-w-site mx-auto px-6">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-16 md:mb-24 lg:mb-32 gap-8 md:gap-12">
             <div className="max-w-2xl">
@@ -136,13 +154,13 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-3xl md:rounded-[4rem] overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 border border-border-subtle rounded-3xl md:rounded-[4rem] overflow-hidden">
              {[
                { name: 'MoMo Stack', tag: 'Infrastructure', asset: 'momo', code: '45.00°', desc: 'Mobile money payment gateway' },
                { name: 'Nexus Intel', tag: 'Security', asset: 'nexus-horizontal', code: '60.00°', desc: 'Cybersecurity platform', wide: true },
                { name: 'Endiro Beans', tag: 'Retail', asset: 'endiro', code: '90.00°', desc: 'Specialty coffee brand' },
              ].map((b, idx) => (
-               <div key={b.name} className="bg-[#020617] p-10 md:p-12 lg:p-16 flex flex-col items-center justify-center group hover:bg-white/[0.03] transition-all duration-700 relative min-h-[320px] md:min-h-[380px]">
+               <div key={b.name} className="bg-bg p-10 md:p-12 lg:p-16 flex flex-col items-center justify-center group hover:bg-white/[0.03] transition-all duration-700 relative min-h-[320px] md:min-h-[380px]">
                   <div className="absolute top-6 md:top-10 right-6 md:right-10 text-[0.55rem] font-mono text-slate-800 font-black tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
                     Asset_ID: {b.code}
                   </div>
@@ -236,7 +254,7 @@ export default function Home() {
       </section>
 
       {/* ─────────── ALL BRANDS GALLERY ─────────── */}
-      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-[#020617] reveal">
+      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-bg reveal">
         <div className="max-w-site mx-auto px-6">
           <div className="text-center mb-16 md:mb-24 lg:mb-32">
             <span className="s-label justify-center">Complete Archive</span>
@@ -258,13 +276,13 @@ export default function Home() {
               { name: 'Empire Night Club', asset: 'empire', tag: 'Entertainment', desc: 'Premium nightlife venue', color: 'purple' },
               { name: 'Fashion Brand', asset: 'fashion', tag: 'Retail Fashion', desc: 'Contemporary fashion label', color: 'pink' },
             ].map((brand, idx) => (
-              <div 
+              <div
                 key={brand.name}
                 className="group relative"
               >
-                <div className="glass-premium rounded-2xl md:rounded-3xl lg:rounded-[3rem] border-white/5 overflow-hidden hover:border-indigo-500/30 transition-all duration-700 relative p-8 md:p-10 lg:p-12 min-h-[320px] md:min-h-[360px] flex flex-col items-center justify-center">
-                  {/* Gradient overlay on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br from-${brand.color}-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+                <div className="glass-premium rounded-2xl md:rounded-3xl lg:rounded-[3rem] border border-border-subtle overflow-hidden hover:border-accent-indigo/30 transition-all duration-700 relative p-8 md:p-10 lg:p-12 min-h-[320px] md:min-h-[360px] flex flex-col items-center justify-center">
+                  {/* Gradient overlay on hover — uses static class from BRAND_HOVER map */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${BRAND_HOVER[brand.color] ?? ''} via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
                   
                   {/* Asset ID badge */}
                   <div className="absolute top-4 md:top-6 right-4 md:right-6 text-[0.5rem] font-mono text-slate-800 font-black tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
@@ -315,7 +333,7 @@ export default function Home() {
       </section>
 
       {/* ─────────── EXTENDED PORTFOLIO ─────────── */}
-      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-white/[0.02] reveal">
+      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-surface/[0.04] reveal">
         <div className="max-w-site mx-auto px-6">
           <div className="text-center mb-16 md:mb-24">
             <span className="s-label justify-center">Extended Portfolio</span>
@@ -381,7 +399,7 @@ export default function Home() {
       </section>
 
       {/* ─────────── GLOBAL DISTRIBUTION MAP ─────────── */}
-      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-[#020617] reveal">
+      <section className="py-20 md:py-32 lg:py-40 relative overflow-hidden bg-bg reveal">
          <div className="max-w-site mx-auto px-6 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-16 md:gap-24 lg:gap-32 items-center">
                <div>
@@ -436,11 +454,11 @@ export default function Home() {
       {/* ─────────── BENTO STATS ─────────── */}
       <section className="py-16 md:py-24 lg:py-32 relative reveal">
         <div className="max-w-site mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gradient-to-br from-white/10 via-white/5 to-white/5 border border-white/10 rounded-3xl md:rounded-[4rem] overflow-hidden shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gradient-to-br from-white/10 via-white/5 to-white/5 border border-border-strong rounded-3xl md:rounded-[4rem] overflow-hidden shadow-2xl">
             {stats.map(({ num, label, icon, detail, color }) => (
-              <div key={label} className="bg-[#020617] p-10 md:p-12 lg:p-16 flex flex-col items-center text-center group hover:bg-gradient-to-br hover:from-white/[0.03] hover:to-transparent transition-all duration-700 relative overflow-hidden">
-                {/* Hover glow effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br from-${color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+              <div key={label} className="bg-bg p-10 md:p-12 lg:p-16 flex flex-col items-center text-center group hover:bg-gradient-to-br hover:from-white/[0.03] hover:to-transparent transition-all duration-700 relative overflow-hidden">
+                {/* Hover glow — static class map for production safety */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${STAT_HOVER[color] ?? ''} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
                 <span className="text-4xl md:text-5xl mb-6 md:mb-8 opacity-30 group-hover:opacity-100 transition-all duration-700 transform group-hover:scale-110 relative z-10">{icon}</span>
                 <span className="text-5xl md:text-6xl lg:text-7xl font-display font-bold text-white mb-3 md:mb-4 tracking-tighter leading-none relative z-10 group-hover:text-indigo-400 transition-colors duration-500">{num}</span>
                 <span className="text-[0.6rem] md:text-[0.65rem] font-mono text-indigo-500 font-black uppercase tracking-[0.3em] mb-4 md:mb-6 relative z-10">{label}</span>
@@ -452,7 +470,7 @@ export default function Home() {
       </section>
 
       {/* ─────────── SERVICES ─────────── */}
-      <section className="py-20 md:py-32 lg:py-40 bg-[#020617]/50 relative overflow-hidden reveal">
+      <section className="py-20 md:py-32 lg:py-40 bg-bg/50 relative overflow-hidden reveal">
         <div className="max-w-site mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-16 md:gap-24 lg:gap-32 items-start">
             <div className="lg:sticky lg:top-32">

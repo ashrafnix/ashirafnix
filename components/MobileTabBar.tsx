@@ -48,7 +48,7 @@ export default function MobileTabBar() {
   return (
     <div className="fixed bottom-0 inset-x-0 z-40 md:hidden">
       {/* Fade overlay above bar */}
-      <div className="h-6 bg-gradient-to-t from-[#020617] to-transparent pointer-events-none" />
+      <div className="h-6 bg-gradient-to-t from-bg to-transparent pointer-events-none" />
       <div className="bg-bg-drawer/90 backdrop-blur-xl border-t border-border-subtle px-2 pb-safe">
         <div className="flex items-center justify-around h-16">
           {tabs.map(({ href, label, icon }) => {

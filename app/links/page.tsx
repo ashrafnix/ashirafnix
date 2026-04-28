@@ -18,24 +18,24 @@ const external = [
 export default function LinksPage() {
   return (
     <>
-      <section className="pt-44 pb-24 relative overflow-hidden bg-[#020617]">
+      <section className="pt-28 md:pt-40 lg:pt-44 pb-12 md:pb-20 lg:pb-24 relative overflow-hidden bg-bg">
         <div className="absolute inset-0 grid-bg opacity-10 pointer-events-none" />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[min(100%,720px)] h-[min(100%,400px)] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
         <div className="max-w-site mx-auto px-6 relative z-10 text-center">
           <span className="block text-center text-[0.7rem] font-mono text-indigo-500 font-bold uppercase tracking-[0.4em] mb-8">
             Network hub
           </span>
-          <h1 className="text-[clamp(3rem,9vw,7rem)] font-display font-bold text-white mb-8 tracking-tighter leading-[0.95]">
+          <h1 className="text-[clamp(2.4rem,7vw,7rem)] font-display font-bold text-white mb-6 md:mb-8 tracking-tighter leading-[0.95]">
             Connect <br />
             <span className="text-indigo-500 italic">everywhere.</span>
           </h1>
-          <p className="text-slate-400 text-lg md:text-2xl max-w-2xl mx-auto font-sans leading-relaxed">
+          <p className="text-slate-400 text-base sm:text-lg md:text-2xl max-w-2xl mx-auto font-sans leading-relaxed">
             One place to move through the site, start a project, or open an external channel.
           </p>
         </div>
       </section>
 
-      <div className="max-w-site mx-auto px-6 pb-32 space-y-24">
+      <div className="max-w-site mx-auto px-4 sm:px-6 pb-20 md:pb-28 lg:pb-32 space-y-16 md:space-y-20 lg:space-y-24">
         <section className="reveal">
           <h2 className="text-[0.7rem] font-mono text-indigo-500 font-bold uppercase tracking-[0.4em] mb-8">
             On this site
@@ -45,7 +45,7 @@ export default function LinksPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="glass-premium rounded-2xl border-white/10 p-8 hover:border-indigo-500/40 transition-all group"
+                className="glass-premium rounded-xl md:rounded-2xl border border-border-subtle p-5 sm:p-6 md:p-8 hover:border-accent-indigo/40 transition-all group"
               >
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-xl font-display font-bold text-white group-hover:text-indigo-200">
@@ -66,7 +66,7 @@ export default function LinksPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <a
               href={`mailto:${site.email}`}
-              className="glass-premium rounded-[2rem] border-white/10 p-10 md:p-12 hover:border-indigo-500/30 transition-all group"
+              className="glass-premium rounded-2xl sm:rounded-[2rem] border border-border-subtle p-7 sm:p-10 md:p-12 hover:border-accent-indigo/30 transition-all group"
             >
               <span className="text-[0.65rem] font-mono text-slate-500 uppercase tracking-widest block mb-3">
                 Email
@@ -77,7 +77,7 @@ export default function LinksPage() {
             </a>
             <Link
               href="/contact"
-              className="glass-premium rounded-[2rem] border-white/10 p-10 md:p-12 hover:border-indigo-500/30 transition-all group flex flex-col justify-center"
+              className="glass-premium rounded-2xl sm:rounded-[2rem] border border-border-subtle p-7 sm:p-10 md:p-12 hover:border-accent-indigo/30 transition-all group flex flex-col justify-center"
             >
               <span className="text-[0.65rem] font-mono text-slate-500 uppercase tracking-widest block mb-3">
                 Consultation
@@ -103,7 +103,7 @@ export default function LinksPage() {
               return (
                 <div
                   key={row.key}
-                  className="glass-premium rounded-2xl border-white/10 p-8 min-h-[160px] flex flex-col"
+                  className="glass-premium rounded-xl md:rounded-2xl border border-border-subtle p-6 md:p-8 min-h-[140px] md:min-h-[160px] flex flex-col"
                 >
                   <span className="text-lg font-display font-bold text-white mb-2">{row.label}</span>
                   <p className="text-slate-500 text-sm flex-1 mb-6">{row.blurb}</p>
